@@ -16,6 +16,7 @@ st.title("🌐 總體經濟、金融指標與 AI 輿論情緒即時儀表板")
 st.sidebar.header("⚙️ 設定與金鑰")
 
 # 1.1 檢查 FRED API Key
+fred_key = None
 if "FRED_API_KEY" in st.secrets:
     fred_key = st.secrets["FRED_API_KEY"]
     st.sidebar.success("已自動讀取 FRED API Key！")
@@ -66,7 +67,6 @@ def get_market_data():
 
 @st.cache_data(ttl=1800)
 def fetch_google_news(keyword="Federal Reserve Inflation"):
-    # 使用 quote 轉碼，確保包含空白或特殊字元之關鍵字連線成功
     safe_keyword = quote(keyword)
     url = f"https://news.google.com/rss/search?q={safe_keyword}&hl=en-US"
     feed = feedparser.parse(url)
@@ -149,8 +149,8 @@ if fred_key:
                                              f"2. 貨幣政策立場判定 (鷹派/鴿派/中立)\n" \
                                              f"3. 重點分析與逐條評分表格 (Markdown Format)"
                                     
-                                    # 使用最新 Gemini 3.5 Flash 模型
-                                    model = genai.GenerativeModel("gemini-3.5-flash")
+                                    # 使用 gemini-1.5-flash 確保穩定相容
+                                    model = genai.GenerativeModel("gemini-1.5-flash")
                                     response = model.generate_content(prompt)
                                     st.markdown(response.text)
                                 except Exception as e:
