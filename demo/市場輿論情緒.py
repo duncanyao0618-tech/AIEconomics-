@@ -164,7 +164,7 @@ if fred_key:
                 if gemini_key:
                     if st.button("🚀 開始分析新聞市場情緒", type="primary"):
                         if news_titles:
-                            with st.spinner("Gemini 正在自動檢索可用模型並剖析立場中..."):
+                            with st.spinner("Gemini 正在剖析文本立場與鷹鴿情緒中..."):
                                 try:
                                     news_text = "\n".join([f"- {t}" for t in news_titles])
                                     prompt = (
@@ -175,25 +175,9 @@ if fred_key:
                                         f"3. 重點分析與逐條評分表格 (Markdown Format)"
                                     )
                                     
-                                    # 動態尋找當前 API Key 支援 generateContent 的可用模型
-                                    response = None
-                                    supported_models = []
-                                    
-                                    for m in genai.list_models():
-                                        if 'generateContent' in m.supported_generation_methods:
-                                            supported_models.append(m.name)
-                                    
-                                    chosen_model = None
-                                    for sm in supported_models:
-                                        if "flash" in sm:
-                                            chosen_model = sm
-                                            break
-                                    if not chosen_model and supported_models:
-                                        chosen_model = supported_models[0]
-                                        
-                                    if chosen_model:
-                                        model = genai.GenerativeModel(chosen_model)
-                                        response = model.generate_content(prompt)
+                                    # 直接指定官方最新建議的 gemini-3.8-flash 模型
+                                    model = genai.GenerativeModel("gemini-3.8-flash")
+                                    response = model.generate_content(prompt)
 
                                     if response:
                                         st.markdown(response.text)
@@ -204,7 +188,7 @@ if fred_key:
                                             mime="text/markdown"
                                         )
                                     else:
-                                        st.error(f"此 API Key 找不到支援的生成模型。偵測到的支援清單: {supported_models}")
+                                        st.error("未能成功取得 AI 回應。")
 
                                 except Exception as e:
                                     st.error(f"AI 分析時發生錯誤: {e}")
