@@ -148,10 +148,21 @@ if fred_key:
                                              f"1. 整體市場情緒分數 (0~100)\n" \
                                              f"2. 貨幣政策立場判定 (鷹派/鴿派/中立)\n" \
                                              f"3. 重點分析與逐條評分表格 (Markdown Format)"
-                                    
-                                    # 使用 gemini-1.5-flash 確保穩定相容
-                                    model = genai.GenerativeModel("gemini-1.5-flash")
-                                    response = model.generate_content(prompt)
+        
+                                  # 自動嘗試不同的模型名稱，避免 404 錯誤
+response = None
+for model_name in ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"]:
+    try:
+        model = genai.GenerativeModel(model_name)
+        response = model.generate_content(prompt)
+        break
+    except Exception:
+        continue
+
+if response:
+    st.markdown(response.text)
+else:
+    st.error("無法載入任何可用的 Gemini 模型，請確認您的 Gemini API Key 是否正確或擁有足夠權限。")
                                     st.markdown(response.text)
                                 except Exception as e:
                                     st.error(f"AI 分析時發生錯誤: {e}")
