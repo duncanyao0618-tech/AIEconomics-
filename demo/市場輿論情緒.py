@@ -164,7 +164,7 @@ if fred_key:
                 if gemini_key:
                     if st.button("🚀 開始分析新聞市場情緒", type="primary"):
                         if news_titles:
-                            with st.spinner("Gemini 正在剖析文本立場與鷹鴿情緒中..."):
+                            with st.spinner("Gemini 正在自動檢索可用模型並剖析立場中..."):
                                 try:
                                     news_text = "\n".join([f"- {t}" for t in news_titles])
                                     prompt = (
@@ -175,19 +175,28 @@ if fred_key:
                                         f"3. 重點分析與逐條評分表格 (Markdown Format)"
                                     )
                                     
-                                    # 自動嘗試不同的模型名稱，避免 404 錯誤
+                                    # 動態尋找當前 API Key 支援 generateContent 的可用模型
                                     response = None
-                                    for model_name in ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"]:
-                                        try:
-                                            model = genai.GenerativeModel(model_name)
-                                            response = model.generate_content(prompt)
+                                    supported_models = []
+                                    
+                                    for m in genai.list_models():
+                                        if 'generateContent' in m.supported_generation_methods:
+                                            supported_models.append(m.name)
+                                    
+                                    chosen_model = None
+                                    for sm in supported_models:
+                                        if "flash" in sm:
+                                            chosen_model = sm
                                             break
-                                        except Exception:
-                                            continue
+                                    if not chosen_model and supported_models:
+                                        chosen_model = supported_models[0]
+                                        
+                                    if chosen_model:
+                                        model = genai.GenerativeModel(chosen_model)
+                                        response = model.generate_content(prompt)
 
                                     if response:
                                         st.markdown(response.text)
-                                        # 新增亮點：提供下載分析報告按鈕
                                         st.download_button(
                                             label="📥 下載 AI 分析報告 (.md)",
                                             data=response.text,
@@ -195,7 +204,7 @@ if fred_key:
                                             mime="text/markdown"
                                         )
                                     else:
-                                        st.error("無法載入任何可用的 Gemini 模型，請確認您的 API Key 是否正確。")
+                                        st.error(f"此 API Key 找不到支援的生成模型。偵測到的支援清單: {supported_models}")
 
                                 except Exception as e:
                                     st.error(f"AI 分析時發生錯誤: {e}")
